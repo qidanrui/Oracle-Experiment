@@ -1,0 +1,174 @@
+
+TKPROF: Release 12.1.0.2.0 - Development on ÐÇÆÚÁù 1ÔÂ 7 01:46:26 2017
+
+Copyright (c) 1982, 2014, Oracle and/or its affiliates.  All rights reserved.
+
+Trace file: cdb2_ora_5312.trc
+Sort options: default
+
+********************************************************************************
+count    = number of times OCI procedure was executed
+cpu      = cpu time in seconds executing 
+elapsed  = elapsed time in seconds executing
+disk     = number of physical reads of buffers from disk
+query    = number of buffers gotten for consistent read
+current  = number of buffers gotten in current mode (usually for update)
+rows     = number of rows processed by the fetch or execute call
+********************************************************************************
+
+SQL ID: f0nbsdhq2gzu5 Plan Hash: 0
+
+alter session set events '10046 trace name context forever, level 8'
+
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          0          0           0
+Execute      1      0.00       0.00          0          0          0           0
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        2      0.00       0.00          0          0          0           0
+
+Misses in library cache during parse: 0
+Parsing user id: 104  
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  SQL*Net message to client                       1        0.00          0.00
+  SQL*Net message from client                     1        8.82          8.82
+********************************************************************************
+
+select
+	supp_nation,
+	cust_nation,
+	l_year,
+	sum(volume) as revenue
+from
+	(
+		select
+			n1.n_name as supp_nation,
+			n2.n_name as cust_nation,
+			extract(year from l_shipdate) as l_year,
+			l_extendedprice * (1 - l_discount) as volume
+		from
+			supplier,
+			lineitem,
+			orders@PDB2_LINK,
+			customer,
+			nation n1,
+			nation n2
+		where
+			s_suppkey = l_suppkey
+			and o_orderkey = l_orderkey
+			and c_custkey = o_custkey
+			and s_nationkey = n1.n_nationkey
+			and c_nationkey = n2.n_nationkey
+			and (
+				(n1.n_name = 'ETHIOPIA' and n2.n_name = 'IRAQ')
+				or (n1.n_name = 'IRAQ' and n2.n_name = 'ETHIOPIA')
+			)
+			and l_shipdate between date '1995-01-01' and date '1996-12-31'
+	) shipping
+group by
+	supp_nation,
+	cust_nation,
+	l_year
+order by
+	supp_nation,
+	cust_nation,
+	l_year
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.01       0.07          0          0          1           0
+Execute      1      0.00       0.00          0          0          0           0
+Fetch        1      0.03       4.98          0       3635          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        3      0.04       5.05          0       3635          1           0
+
+Misses in library cache during parse: 0
+Optimizer mode: ALL_ROWS
+Parsing user id: 104  
+Number of plan statistics captured: 1
+
+Rows (1st) Rows (avg) Rows (max)  Row Source Operation
+---------- ---------- ----------  ---------------------------------------------------
+         0          0          0  SORT GROUP BY (cr=3635 pr=0 pw=0 time=4983039 us cost=54640 size=10275642936 card=46920744)
+         0          0          0   HASH JOIN  (cr=3635 pr=0 pw=0 time=4983019 us cost=53225 size=10275642936 card=46920744)
+     10000      10000      10000    TABLE ACCESS FULL SUPPLIER (cr=211 pr=0 pw=0 time=2410 us cost=61 size=278278 card=10703)
+         0          0          0    HASH JOIN  (cr=3424 pr=0 pw=0 time=4977380 us cost=50065 size=227814859103 card=1180387871)
+         0          0          0     HASH JOIN  (cr=3424 pr=0 pw=0 time=4977187 us cost=8959 size=83217420 card=630435)
+     11915      11915      11915      HASH JOIN  (cr=3424 pr=0 pw=0 time=28109 us cost=951 size=5028746 card=47441)
+         2          2          2       NESTED LOOPS  (cr=9 pr=0 pw=0 time=132 us cost=7 size=640 card=8)
+         2          2          2        TABLE ACCESS FULL NATION (cr=3 pr=0 pw=0 time=65 us cost=3 size=80 card=2)
+         2          2          2        TABLE ACCESS FULL NATION (cr=6 pr=0 pw=0 time=65 us cost=2 size=40 card=1)
+    150000     150000     150000       TABLE ACCESS FULL CUSTOMER (cr=3415 pr=0 pw=0 time=15184 us cost=943 size=3854786 card=148261)
+         0          0          0      REMOTE  ORDERS (cr=0 pr=0 pw=0 time=4945043 us cost=4192 size=51225304 card=1970204)
+         0          0          0     TABLE ACCESS FULL LINEITEM (cr=0 pr=0 pw=0 time=0 us cost=29000 size=83261035 card=1364935)
+
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  single-task message                             1        0.00          0.00
+  SQL*Net message from dblink                    10        4.94          4.99
+  SQL*Net message to dblink                       9        0.00          0.00
+  SQL*Net message to client                       1        0.00          0.00
+  SQL*Net message from client                     1       14.80         14.80
+
+
+
+********************************************************************************
+
+OVERALL TOTALS FOR ALL NON-RECURSIVE STATEMENTS
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        2      0.01       0.07          0          0          1           0
+Execute      2      0.00       0.00          0          0          0           0
+Fetch        1      0.03       4.98          0       3635          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        5      0.04       5.05          0       3635          1           0
+
+Misses in library cache during parse: 0
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  SQL*Net message to client                       2        0.00          0.00
+  SQL*Net message from client                     2       14.80         23.63
+  single-task message                             1        0.00          0.00
+  SQL*Net message from dblink                    12        4.94          4.99
+  SQL*Net message to dblink                      11        0.00          0.00
+
+
+OVERALL TOTALS FOR ALL RECURSIVE STATEMENTS
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        0      0.00       0.00          0          0          0           0
+Execute      0      0.00       0.00          0          0          0           0
+Fetch        0      0.00       0.00          0          0          0           0
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total        0      0.00       0.00          0          0          0           0
+
+Misses in library cache during parse: 0
+
+    2  user  SQL statements in session.
+    0  internal SQL statements in session.
+    2  SQL statements in session.
+********************************************************************************
+Trace file: cdb2_ora_5312.trc
+Trace file compatibility: 11.1.0.7
+Sort options: default
+
+       1  session in tracefile.
+       2  user  SQL statements in trace file.
+       0  internal SQL statements in trace file.
+       2  SQL statements in trace file.
+       2  unique SQL statements in trace file.
+     126  lines in trace file.
+      28  elapsed seconds in trace file.
+
+
